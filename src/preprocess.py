@@ -7,7 +7,11 @@ from nltk.tokenize import word_tokenize
 
 stemmer = PorterStemmer()
 
-stop_words = set(stopwords.words('english'))
+try:
+    stop_words = set(stopwords.words("english"))
+except LookupError:
+    nltk.download("stopwords")
+    stop_words = set(stopwords.words("english"))
 
 def preprocess_text(text):
 
