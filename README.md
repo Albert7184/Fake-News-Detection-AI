@@ -290,4 +290,4 @@ MIT License
 
 # 👨‍💻 Author
 
-Caao Minh Phu (Rowan Vale Albert)
+Cao Minh Phu (Rowan Vale Albert)
