@@ -5,13 +5,19 @@ from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 from nltk.tokenize import word_tokenize
 
-stemmer = PorterStemmer()
+# download required nltk data
+try:
+    nltk.data.find("tokenizers/punkt")
+except LookupError:
+    nltk.download("punkt")
 
 try:
-    stop_words = set(stopwords.words("english"))
+    nltk.data.find("corpora/stopwords")
 except LookupError:
     nltk.download("stopwords")
-    stop_words = set(stopwords.words("english"))
+
+stemmer = PorterStemmer()
+stop_words = set(stopwords.words("english"))
 
 def preprocess_text(text):
 
