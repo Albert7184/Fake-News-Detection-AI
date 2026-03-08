@@ -1,58 +1,61 @@
 """
-Fake News Detection Web App
-Author: Rowan Vale Albert
+Fake News Detection AI
+Full Dashboard Backend
+Flask + AI Model
 """
 
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
+
 import pickle
-from pathlib import Path
+import feedparser
 import requests
+
+from datetime import datetime
+from pathlib import Path
+
 from bs4 import BeautifulSoup
-from src.preprocess import preprocess_text
+from langdetect import detect
+from textblob import TextBlob
 
-from docx import Document
-import pdfplumber
-
-import os
+from src.data.preprocess import preprocess_text
 
 
-# =========================================================
-# App Configuration
-# =========================================================
+# ======================================
+# INIT APP
+# ======================================
 
 app = Flask(__name__)
-app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024  # 5MB
 
 
-@app.errorhandler(413)
-def file_too_large(e):
-
-    return render_template(
-        "index.html",
-        prediction="❌ Upload failed: File is too large (max 5MB)"
-    )
-
+# ======================================
+# PATHS
+# ======================================
 
 MODEL_PATH = Path("models/fake_news_model.pkl")
 VECTORIZER_PATH = Path("models/vectorizer.pkl")
 
+
+# ======================================
+# GLOBAL ANALYTICS
+# ======================================
+
+analytics = {
+    "total": 0,
+    "fake": 0,
+    "real": 0
+}
+
 history = []
-
-fake_keywords = [
-    "shocking",
-    "conspiracy",
-    "secret",
-    "unbelievable",
-    "breaking",
-    "exclusive"
-]
+trend = []
 
 
-# =========================================================
-# Load Model
-# =========================================================
+# ======================================
+# LOAD AI MODEL
+# ======================================
 
-def load_models():
+print("Loading AI model...")
+
+try:
 
     with open(MODEL_PATH, "rb") as f:
         model = pickle.load(f)
@@ -60,211 +63,336 @@ def load_models():
     with open(VECTORIZER_PATH, "rb") as f:
         vectorizer = pickle.load(f)
 
-    return model, vectorizer
+    print("Model loaded successfully")
+
+except Exception as e:
+
+    print("Model load error:", e)
+
+    model = None
+    vectorizer = None
 
 
-model, vectorizer = load_models()
+# ======================================
+# RSS NEWS SOURCES
+# ======================================
+
+news_feeds = [
+
+    "http://feeds.bbci.co.uk/news/rss.xml",
+    "http://rss.cnn.com/rss/edition.rss",
+    "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml"
+
+]
 
 
-# =========================================================
-# Extract article from URL
-# =========================================================
+# ======================================
+# NEWS CRAWLER
+# ======================================
+
+def crawl_news(limit=5):
+
+    articles = []
+
+    for url in news_feeds:
+
+        try:
+
+            feed = feedparser.parse(url)
+
+            for entry in feed.entries[:limit]:
+
+                articles.append({
+
+                    "title": entry.get("title"),
+                    "link": entry.get("link"),
+                    "source": feed.feed.get("title", "News")
+
+                })
+
+        except Exception:
+            continue
+
+    return articles
+
+
+# ======================================
+# SENTIMENT ANALYSIS
+# ======================================
+
+def analyze_sentiment(text):
+
+    try:
+        polarity = TextBlob(text).sentiment.polarity
+    except Exception:
+        polarity = 0
+
+    if polarity > 0.3:
+        return "Positive"
+
+    if polarity < -0.3:
+        return "Negative"
+
+    return "Neutral"
+
+
+# ======================================
+# EXTRACT ARTICLE FROM URL
+# ======================================
 
 def extract_article(url):
 
     try:
 
-        headers = {
-            "User-Agent": "Mozilla/5.0"
-        }
-
-        page = requests.get(url, headers=headers, timeout=10)
+        page = requests.get(
+            url,
+            timeout=8,
+            headers={"User-Agent": "Mozilla/5.0"}
+        )
 
         soup = BeautifulSoup(page.text, "html.parser")
 
         paragraphs = soup.find_all("p")
 
-        article = " ".join(p.text for p in paragraphs)
+        article = " ".join(p.get_text() for p in paragraphs)
 
-        return article
+        return article[:3000]
 
     except Exception:
-        return None
-
-
-# =========================================================
-# Read uploaded file
-# =========================================================
-
-def read_uploaded_file(file):
-
-    filename = file.filename.lower()
-
-    try:
-
-        if filename.endswith(".txt"):
-
-            return file.read().decode("utf-8", errors="ignore")
-
-        elif filename.endswith(".docx"):
-
-            doc = Document(file)
-
-            return "\n".join(p.text for p in doc.paragraphs)
-
-        elif filename.endswith(".pdf"):
-
-            text = ""
-
-            with pdfplumber.open(file) as pdf:
-
-                for page in pdf.pages[:5]:
-
-                    page_text = page.extract_text()
-
-                    if page_text:
-                        text += page_text + "\n"
-
-            return text.strip()
-
-        else:
-            return None
-
-    except Exception as e:
-
-        print("File read error:", e)
 
         return None
 
 
-# =========================================================
-# Highlight fake keywords
-# =========================================================
+# ======================================
+# AI EXPLANATION
+# ======================================
 
-def highlight_fake(text):
+def explain_prediction(text):
 
-    for word in fake_keywords:
+    suspicious = [
 
-        text = text.replace(
-            word,
-            f'<span class="fake-highlight">{word}</span>'
-        )
+        "shocking",
+        "breaking",
+        "secret",
+        "conspiracy",
+        "miracle",
+        "100%"
 
-    return text
+    ]
+
+    words = text.lower().split()
+
+    hits = [w for w in words if w in suspicious]
+
+    if hits:
+
+        return "Suspicious keywords detected: " + ", ".join(set(hits))
+
+    return "No suspicious keywords detected"
 
 
-# =========================================================
-# Routes
-# =========================================================
+# ======================================
+# HOME PAGE
+# ======================================
 
 @app.route("/")
 def home():
 
-    return render_template(
-        "index.html",
-        history=history[-5:]
-    )
+    return render_template("index.html")
 
+
+# ======================================
+# LIVE NEWS API
+# ======================================
+
+@app.route("/api/news")
+def api_news():
+
+    return jsonify({
+
+        "articles": crawl_news()
+
+    })
+
+
+# ======================================
+# ANALYTICS API
+# ======================================
+
+@app.route("/api/analytics")
+def api_analytics():
+
+    total = analytics["total"]
+
+    fake_percent = 0
+    real_percent = 0
+
+    if total > 0:
+
+        fake_percent = round((analytics["fake"] / total) * 100, 2)
+        real_percent = round((analytics["real"] / total) * 100, 2)
+
+    return jsonify({
+
+        "total_predictions": total,
+        "fake_news": analytics["fake"],
+        "real_news": analytics["real"],
+        "fake_percent": fake_percent,
+        "real_percent": real_percent
+
+    })
+
+
+# ======================================
+# HISTORY API
+# ======================================
+
+@app.route("/api/history")
+def api_history():
+
+    return jsonify({
+
+        "history": history[-20:]
+
+    })
+
+
+# ======================================
+# TREND API
+# ======================================
+
+@app.route("/api/trend")
+def api_trend():
+
+    return jsonify({
+
+        "trend": trend[-30:]
+
+    })
+
+
+# ======================================
+# SERVER STATUS
+# ======================================
+
+@app.route("/api/status")
+def api_status():
+
+    return jsonify({
+
+        "model_loaded": model is not None,
+        "vectorizer_loaded": vectorizer is not None,
+        "total_predictions": analytics["total"]
+
+    })
+
+
+# ======================================
+# AI PREDICTION
+# ======================================
 
 @app.route("/predict", methods=["POST"])
 def predict():
 
-    news_text = request.form.get("news", "").strip()
-    url = request.form.get("url", "").strip()
-    file = request.files.get("file")
+    data = request.get_json()
 
-    upload_message = None
+    if not data:
 
-    # =============================
-    # FILE UPLOAD
-    # =============================
+        return jsonify({"error": "Invalid request"}), 400
 
-    if file and file.filename != "":
+    text = data.get("news", "")
+    url = data.get("url", "")
 
-        filename = file.filename.lower()
+    if not text and url:
+        text = extract_article(url)
 
-        if not filename.endswith((".txt", ".pdf", ".docx")):
+    if not text:
+        return jsonify({"error": "No text provided"}), 400
 
-            return render_template(
-                "index.html",
-                prediction="❌ Upload failed: Unsupported file type"
-            )
+    if model is None or vectorizer is None:
+        return jsonify({"error": "Model not loaded"}), 500
 
-        content = read_uploaded_file(file)
+    try:
 
-        if not content:
+        clean = preprocess_text(text)
 
-            return render_template(
-                "index.html",
-                prediction="❌ Upload failed: Could not read file"
-            )
+        vector = vectorizer.transform([clean])
 
-        news_text = content
-        upload_message = f"✅ Upload successful: {filename}"
+        probs = model.predict_proba(vector)[0]
 
-    # =============================
-    # URL CRAWL
-    # =============================
+        pred = model.predict(vector)[0]
 
-    if url and not news_text:
+    except Exception as e:
 
-        article = extract_article(url)
+        return jsonify({"error": str(e)}), 500
 
-        if article:
-            news_text = article
-        else:
-            return render_template(
-                "index.html",
-                prediction="❌ Could not extract article"
-            )
 
-    if not news_text:
+    fake_prob = round(probs[0] * 100, 2)
+    real_prob = round(probs[1] * 100, 2)
 
-        return render_template(
-            "index.html",
-            prediction="⚠️ Please enter news text"
-        )
+    result = "FAKE" if pred == 0 else "REAL"
 
-    # =============================
-    # AI Prediction
-    # =============================
+    confidence = max(fake_prob, real_prob)
 
-    clean_text = preprocess_text(news_text)
+    language = detect(text)
 
-    vector = vectorizer.transform([clean_text])
+    sentiment = analyze_sentiment(text)
 
-    prediction = model.predict(vector)[0]
+    explanation = explain_prediction(text)
 
-    probabilities = model.predict_proba(vector)[0]
 
-    fake_prob = round(probabilities[0] * 100, 2)
-    real_prob = round(probabilities[1] * 100, 2)
+    # UPDATE ANALYTICS
 
-    result = "Fake News 🚨" if prediction == 0 else "Real News ✅"
+    analytics["total"] += 1
 
-    highlighted_text = highlight_fake(news_text)
+    if pred == 0:
+        analytics["fake"] += 1
+    else:
+        analytics["real"] += 1
+
+
+    timestamp = datetime.now().strftime("%H:%M:%S")
+
 
     history.append({
-        "text": news_text[:120],
-        "result": result
+
+        "time": timestamp,
+        "result": result,
+        "text": text[:120]
+
     })
 
-    return render_template(
-        "index.html",
-        prediction=result,
-        fake_prob=fake_prob,
-        real_prob=real_prob,
-        news_text=news_text,
-        highlighted_text=highlighted_text,
-        upload_message=upload_message,
-        history=history[-5:]
-    )
+
+    trend.append({
+
+        "time": timestamp,
+        "fake": analytics["fake"],
+        "real": analytics["real"]
+
+    })
 
 
-# =========================================================
-# Run
-# =========================================================
+    return jsonify({
+
+        "prediction": result,
+        "confidence": confidence,
+        "fake_probability": fake_prob,
+        "real_probability": real_prob,
+        "language": language,
+        "sentiment": sentiment,
+        "explanation": explanation
+
+    })
+
+
+# ======================================
+# RUN SERVER
+# ======================================
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+
+    app.run(
+        host="0.0.0.0",
+        port=10000,
+        debug=True
+    )

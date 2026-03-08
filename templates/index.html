@@ -1,200 +1,192 @@
 <!DOCTYPE html>
-
 <html lang="en">
 
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>Fake News Detection AI</title>
-
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<title>Fake News AI Dashboard</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
 <style>
 
-/* ================================
-GLOBAL
-================================ */
+/* CYBERPUNK BACKGROUND */
 
 body{
 margin:0;
-font-family:"Segoe UI",Arial,sans-serif;
-color:white;
+font-family:'Inter';
+background:radial-gradient(circle at 20% 20%,#0f172a,#020617);
+color:#e2e8f0;
 display:flex;
-justify-content:center;
-align-items:flex-start;
-min-height:100vh;
-padding:40px;
-background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+height:100vh;
+overflow:hidden;
 }
 
-/* ================================
-AI GRID BACKGROUND
-================================ */
+/* SIDEBAR */
 
-body::before{
-content:"";
-position:fixed;
-width:200%;
-height:200%;
-background-image:radial-gradient(circle,#00e5ff 1px,transparent 1px);
-background-size:40px 40px;
-opacity:0.15;
-animation:gridMove 40s linear infinite;
-z-index:0;
+.sidebar{
+width:240px;
+background:linear-gradient(180deg,#020617,#020617,#020617);
+border-right:1px solid #0ea5e9;
+padding:25px;
+box-shadow:0 0 20px #0ea5e930;
 }
 
-@keyframes gridMove{
-from{transform:translate(0,0)}
-to{transform:translate(-200px,-200px)}
+.logo{
+font-family:'Orbitron';
+font-size:22px;
+font-weight:600;
+color:#22c55e;
+margin-bottom:30px;
+text-shadow:0 0 8px #22c55e;
 }
 
-/* ================================
-CARD
-================================ */
+/* NAV */
 
-.container{
-position:relative;
-z-index:1;
-width:900px;
-max-width:95%;
-padding:40px;
-background:rgba(255,255,255,0.08);
-backdrop-filter:blur(14px);
-border-radius:18px;
-box-shadow:0 0 40px rgba(0,200,255,0.3);
-text-align:center;
-}
-
-/* ================================
-TITLE
-================================ */
-
-h1{
-font-size:36px;
-margin-bottom:25px;
-text-shadow:0 0 20px #00e5ff;
-}
-
-/* ================================
-TEXTAREA
-================================ */
-
-textarea{
-width:100%;
-height:180px;
-padding:15px;
-font-size:15px;
-border-radius:10px;
-border:none;
-outline:none;
-resize:vertical;
-background:#f4f4f4;
-}
-
-input{
-width:100%;
+.nav{
 padding:12px;
-margin-top:12px;
-border-radius:10px;
-border:none;
+border-radius:8px;
+cursor:pointer;
+margin-bottom:10px;
+transition:0.3s;
+border:1px solid transparent;
 }
 
-/* ================================
-BUTTON
-================================ */
+.nav:hover{
+background:#0f172a;
+border:1px solid #22c55e;
+box-shadow:0 0 10px #22c55e;
+}
+
+.nav.active{
+background:#22c55e;
+color:black;
+}
+
+/* MAIN */
+
+.main{
+flex:1;
+padding:40px;
+overflow:auto;
+}
+
+/* SECTION */
+
+.section{
+display:none;
+}
+
+.section.active{
+display:block;
+}
+
+/* CARD */
+
+.card{
+background:#020617;
+padding:25px;
+border-radius:12px;
+margin-bottom:20px;
+border:1px solid #1e293b;
+box-shadow:0 0 25px #0ea5e920;
+}
+
+/* GRID */
+
+.grid{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:20px;
+}
+
+.metric{
+background:#020617;
+padding:20px;
+border-radius:10px;
+text-align:center;
+border:1px solid #1e293b;
+}
+
+.metric-value{
+font-size:28px;
+font-weight:600;
+font-family:'Orbitron';
+}
+
+/* INPUT */
+
+textarea,input{
+width:100%;
+background:#020617;
+border:1px solid #1e293b;
+color:white;
+padding:10px;
+margin-top:10px;
+border-radius:8px;
+}
+
+/* BUTTON */
 
 button{
-margin-top:20px;
-padding:14px 36px;
-font-size:16px;
+margin-top:10px;
+padding:10px 20px;
+background:#22c55e;
 border:none;
-border-radius:10px;
+border-radius:8px;
 cursor:pointer;
-font-weight:bold;
-color:white;
-background:linear-gradient(45deg,#00e5ff,#0072ff);
-transition:0.3s;
+font-weight:600;
 }
 
 button:hover{
-transform:scale(1.07);
-box-shadow:0 0 25px #00e5ff;
+box-shadow:0 0 12px #22c55e;
 }
 
-/* ================================
-UPLOAD BOX
-================================ */
+/* RESULT */
 
-#upload-box{
-margin-top:20px;
-padding:35px;
-border:2px dashed #00e5ff;
-border-radius:12px;
-cursor:pointer;
-color:#00e5ff;
+.result{
+font-size:30px;
+font-weight:700;
+margin-top:10px;
+font-family:'Orbitron';
 }
 
-#upload-box:hover{
-background:rgba(0,229,255,0.15);
+.fake{color:#ef4444}
+.real{color:#22c55e}
+
+/* NEWS */
+
+.news-item{
+padding:10px;
+border-bottom:1px solid #111827;
 }
 
-/* ================================
-AI SCANNING
-================================ */
-
-#scanner{
-display:none;
-margin-top:25px;
+.news-item a{
+color:#38bdf8;
+text-decoration:none;
 }
 
-.scan-bar{
-height:4px;
-width:100%;
-background:#00e5ff;
-animation:scan 2s infinite;
+/* HEATMAP */
+
+.keyword{
+display:inline-block;
+padding:5px 10px;
+margin:5px;
+border-radius:6px;
+background:#0f172a;
+border:1px solid #22c55e;
 }
 
-@keyframes scan{
-0%{transform:translateX(-100%)}
-100%{transform:translateX(100%)}
-}
+/* SPEED */
 
-/* ================================
-RESULT CARD
-================================ */
-
-.result-card{
-margin-top:40px;
-padding:25px;
-background:rgba(0,0,0,0.35);
-border-radius:14px;
-box-shadow:0 0 25px rgba(0,200,255,0.3);
-}
-
-/* ================================
-HIGHLIGHT FAKE TEXT
-================================ */
-
-.fake-highlight{
-background:#ff4d4f;
-color:white;
-padding:3px;
-border-radius:4px;
-}
-
-/* ================================
-CHART
-================================ */
-
-canvas{
-margin-top:35px;
-background:white;
-border-radius:10px;
-padding:12px;
+.speed{
+font-size:14px;
+color:#38bdf8;
+margin-top:10px;
 }
 
 </style>
@@ -203,136 +195,342 @@ padding:12px;
 
 <body>
 
-<div class="container">
+<div class="sidebar">
 
-<h1>🧠 Fake News Detection AI</h1>
+<div class="logo">Fake News Detection AI</div>
 
-<form id="form" action="/predict" method="post" enctype="multipart/form-data">
-
-<textarea name="news" placeholder="Paste news article...">{{news_text}}</textarea>
-
-<input name="url" placeholder="Paste news URL (optional)">
-
-<button type="submit" onclick="startScan()">Analyze with AI</button>
-
-</form>
-
-<!-- FILE UPLOAD -->
-
-<div id="upload-box">
-    {% if upload_message %}
-<div class="result-card">
-{{upload_message}}
-</div>
-{% endif %}
-📂 Upload TXT / PDF / DOCX
-<input type="file" name="file" id="fileInput" accept=".txt,.pdf,.docx" style="display:none">
-</div>
-
-<!-- AI SCANNER -->
-
-<div id="scanner">
-<div class="scan-bar"></div>
-<p>AI scanning article...</p>
-</div>
-
-{% if prediction %}
-
-<div class="result-card">
-
-<h2>{{prediction}}</h2>
-
-<p>Fake Probability: {{fake_prob}}%</p>
-<p>Real Probability: {{real_prob}}%</p>
-
-<!-- Highlight example -->
-
-<div style="margin-top:15px">
-
-<b>AI flagged phrases:</b><br>
-
-<span class="fake-highlight">breaking shocking conspiracy</span> <span class="fake-highlight">unverified claim</span>
+<div class="nav active" onclick="showTab('dashboard',this)">Dashboard</div>
+<div class="nav" onclick="showTab('analyzer',this)">AI Analyzer</div>
+<div class="nav" onclick="showTab('news',this)">Live News</div>
+<div class="nav" onclick="showTab('analytics',this)">Analytics</div>
 
 </div>
 
-<canvas id="chart"></canvas>
+<div class="main">
+
+<!-- DASHBOARD -->
+
+<div id="dashboard" class="section active">
+
+<div class="card">
+
+<h2>AI Analytics Dashboard</h2>
+
+<div class="grid">
+
+<div class="metric">
+Total Predictions
+<div id="total" class="metric-value">0</div>
+</div>
+
+<div class="metric">
+Fake News
+<div id="fake" class="metric-value">0</div>
+</div>
+
+<div class="metric">
+Real News
+<div id="real" class="metric-value">0</div>
+</div>
 
 </div>
 
-{% endif %}
+<canvas id="analyticsChart"></canvas>
+<canvas id="trendChart"></canvas>
+
+</div>
+
+</div>
+
+<!-- ANALYZER -->
+
+<div id="analyzer" class="section">
+
+<div class="card">
+
+<h2>AI News Analyzer</h2>
+
+<textarea id="newsText" placeholder="Paste article..."></textarea>
+
+<input id="newsURL" placeholder="or paste URL">
+
+<button onclick="analyze()">Analyze</button>
+
+<div class="speed" id="speed"></div>
+
+<div id="resultBox"></div>
+
+<div id="explanation"></div>
+
+<div id="heatmap"></div>
+
+<canvas id="resultChart"></canvas>
+
+</div>
+
+</div>
+
+<!-- LIVE NEWS -->
+
+<div id="news" class="section">
+
+<div class="card">
+
+<h2>Live News Feed</h2>
+
+<div id="newsList"></div>
+
+</div>
+
+</div>
+
+<!-- ANALYTICS -->
+
+<div id="analytics" class="section">
+
+<div class="card">
+
+<h2>AI Prediction Chart</h2>
+
+<canvas id="analyticsChart2"></canvas>
+
+</div>
+
+</div>
 
 </div>
 
 <script>
 
-/* =========================
-UPLOAD FILE
-========================= */
+let resultChart
+let analyticsChart
+let trendChart
 
-const uploadBox = document.getElementById("upload-box");
-const fileInput = document.getElementById("fileInput");
-const textarea = document.querySelector("textarea");
+/* TAB */
 
-uploadBox.addEventListener("click", () => {
-fileInput.click();
-});
+function showTab(id,el){
 
-fileInput.addEventListener("change", function(){
+document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"))
+document.getElementById(id).classList.add("active")
 
-const file = this.files[0];
-
-if(file){
-
-const reader = new FileReader();
-
-reader.onload = function(event){
-textarea.value = event.target.result;
-};
-
-reader.readAsText(file);
+document.querySelectorAll(".nav").forEach(n=>n.classList.remove("active"))
+el.classList.add("active")
 
 }
 
-});
+/* ANALYZE */
 
+function analyze(){
 
-/* =========================
-AI SCANNING
-========================= */
+let start=performance.now()
 
-function startScan(){
+let text=document.getElementById("newsText").value
+let url=document.getElementById("newsURL").value
 
-document.getElementById("scanner").style.display="block";
+fetch("/predict",{
+
+method:"POST",
+
+headers:{"Content-Type":"application/json"},
+
+body:JSON.stringify({news:text,url:url})
+
+})
+
+.then(res=>res.json())
+
+.then(data=>{
+
+let end=performance.now()
+
+let speed=Math.round(end-start)
+
+document.getElementById("speed").innerText="Prediction speed: "+speed+" ms"
+
+let result=data.prediction
+
+let box=document.getElementById("resultBox")
+
+box.innerHTML=`<div class="result ${result=='FAKE'?'fake':'real'}">${result}</div>
+Confidence: ${data.confidence}%
+<br>Language: ${data.language}
+<br>Sentiment: ${data.sentiment}`
+
+document.getElementById("explanation").innerHTML="<br><b>AI Explanation:</b> "+data.explanation
+
+drawHeatmap(data.explanation)
+
+drawResultChart(data.fake_probability,data.real_probability)
+
+loadAnalytics()
+
+})
 
 }
 
-</script>
+/* RESULT CHART */
 
-{% if prediction %}
+function drawResultChart(fake,real){
 
-<script>
+if(resultChart) resultChart.destroy()
 
-const ctx=document.getElementById("chart")
+resultChart=new Chart(resultChart=document.getElementById("resultChart"),{
 
-new Chart(ctx,{
 type:"doughnut",
+
 data:{
 labels:["Fake","Real"],
 datasets:[{
-data:[{{fake_prob}},{{real_prob}}],
-backgroundColor:["#ff4d4f","#00d26a"]
+data:[fake,real],
+backgroundColor:["#ef4444","#22c55e"]
 }]
-},
-options:{
-plugins:{
-legend:{position:"bottom"}
 }
-}
+
 })
 
-</script>
+}
 
-{% endif %}
+/* HEATMAP */
+
+function drawHeatmap(text){
+
+let words=text.split(" ")
+
+let box=document.getElementById("heatmap")
+
+box.innerHTML="<br><b>Keyword Heatmap</b><br>"
+
+words.forEach(w=>{
+
+let span=document.createElement("span")
+
+span.className="keyword"
+
+span.innerText=w
+
+box.appendChild(span)
+
+})
+
+}
+
+/* ANALYTICS */
+
+function loadAnalytics(){
+
+fetch("/api/analytics")
+
+.then(res=>res.json())
+
+.then(data=>{
+
+document.getElementById("total").innerText=data.total_predictions
+document.getElementById("fake").innerText=data.fake_news
+document.getElementById("real").innerText=data.real_news
+
+if(analyticsChart) analyticsChart.destroy()
+
+analyticsChart=new Chart(document.getElementById("analyticsChart"),{
+
+type:"pie",
+
+data:{
+labels:["Fake","Real"],
+datasets:[{
+data:[data.fake_news,data.real_news],
+backgroundColor:["#ef4444","#22c55e"]
+}]
+}
+
+})
+
+})
+
+}
+
+/* TREND */
+
+function loadTrend(){
+
+fetch("/api/trend")
+
+.then(res=>res.json())
+
+.then(data=>{
+
+let labels=data.trend.map(t=>t.time)
+
+let fake=data.trend.map(t=>t.fake)
+let real=data.trend.map(t=>t.real)
+
+if(trendChart) trendChart.destroy()
+
+trendChart=new Chart(document.getElementById("trendChart"),{
+
+type:"line",
+
+data:{
+labels:labels,
+datasets:[
+{
+label:"Fake",
+data:fake,
+borderColor:"#ef4444"
+},
+{
+label:"Real",
+data:real,
+borderColor:"#22c55e"
+}
+]
+}
+
+})
+
+})
+
+}
+
+/* NEWS */
+
+function loadNews(){
+
+fetch("/api/news")
+
+.then(res=>res.json())
+
+.then(data=>{
+
+let list=document.getElementById("newsList")
+
+list.innerHTML=""
+
+data.articles.forEach(n=>{
+
+let div=document.createElement("div")
+
+div.className="news-item"
+
+div.innerHTML=`<a href="${n.link}" target="_blank">${n.title}</a>`
+
+list.appendChild(div)
+
+})
+
+})
+
+}
+
+/* AUTO REFRESH */
+
+loadAnalytics()
+loadTrend()
+loadNews()
+
+setInterval(loadNews,30000)
+setInterval(loadTrend,10000)
+
+</script>
 
 </body>
 </html>

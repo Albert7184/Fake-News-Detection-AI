@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1 class="text-3xl font-bold mb-8 text-cyan-400">
+AI Analytics Dashboard
+</h1>
+
+<div class="grid grid-cols-3 gap-6">
+
+    <!-- Total Articles -->
+    <div class="bg-gray-900 p-6 rounded-xl shadow">
+        <h2 class="text-gray-400">Total Articles</h2>
+        <p class="text-3xl font-bold mt-2">{{ total_articles }}</p>
+    </div>
+
+    <!-- Fake News -->
+    <div class="bg-red-900 p-6 rounded-xl shadow">
+        <h2 class="text-gray-300">Fake News</h2>
+        <p class="text-3xl font-bold mt-2">{{ fake_count }}</p>
+    </div>
+
+    <!-- Real News -->
+    <div class="bg-green-900 p-6 rounded-xl shadow">
+        <h2 class="text-gray-300">Real News</h2>
+        <p class="text-3xl font-bold mt-2">{{ real_count }}</p>
+    </div>
+
+</div>
+
+<!-- Chart -->
+<div class="mt-10 bg-gray-900 p-6 rounded-xl">
+
+    <h2 class="text-xl mb-4">Fake vs Real News</h2>
+
+    <canvas id="newsChart"></canvas>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+const ctx = document.getElementById('newsChart');
+
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: ['Fake', 'Real'],
+        datasets: [{
+            label: 'News Count',
+            data: [{{ fake_count }}, {{ real_count }}],
+        }]
+    }
+});
+
+</script>
+
+{% endblock %}

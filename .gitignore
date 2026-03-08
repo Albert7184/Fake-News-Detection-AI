@@ -1,13 +1,45 @@
-venv/
+# Python
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 
-.env
+# Virtual environment
+venv/
+env/
+.venv/
 
-data/
+# VSCode
+.vscode/
 
+# Jupyter
 .ipynb_checkpoints/
 
+# OS
 .DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Model files
+*.pkl
+*.joblib
+*.pt
+*.pth
+
+# Cache
+.cache/
+
+# Secrets
+.env
+
+# Build
+dist/
+build/
+
+# Flask
+instance/
+
+# Python packaging
+*.egg-info/
