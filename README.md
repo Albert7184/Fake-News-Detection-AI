@@ -1,62 +1,116 @@
-# 🧠 Fake News Detection AI
+# 🧠 Fake News Detection AI Dashboard
 
-A Machine Learning web application that detects whether a news article is **Fake** or **Real** using Natural Language Processing and a **Random Forest classifier**.
+An **AI-powered Fake News Detection System** with a modern analytics dashboard that analyzes news articles and predicts whether they are **Fake** or **Real** using Natural Language Processing and Machine Learning.
 
-This project provides a simple web interface where users can analyze news articles by:
-
-* 📝 Pasting article text
-* 🌐 Providing a news URL
-* 📂 Uploading a file (TXT, PDF, DOCX)
-
-The system processes the text, applies NLP preprocessing, and predicts the probability that the article is **Fake or Real**.
+The system supports multiple input methods and provides interactive visualizations to help users understand prediction results.
 
 ---
 
 # 🚀 Features
 
-* Fake news detection using Machine Learning
+### 🧠 AI Fake News Detection
+
+* Detect whether a news article is **Fake or Real**
+* Machine Learning classification model
+* Confidence score prediction
 * NLP preprocessing pipeline
-* Upload files (TXT, PDF, DOCX)
-* Extract article text from URLs
-* Highlight suspicious keywords in the article
-* AI confidence score visualization using Chart.js
-* File upload validation and error handling
-* Modern interactive UI
+
+---
+
+### 📰 Multiple Input Methods
+
+Users can analyze news articles in several ways:
+
+• **Paste article text**
+
+• **Analyze a news URL**
+
+• **Upload a file**
+
+Supported file formats:
+
+TXT
+PDF
+DOCX
+
+---
+
+### 📊 Interactive AI Dashboard
+
+The dashboard provides:
+
+* Prediction probability charts
+* Fake vs Real analytics
+* Confidence score visualization
+* Interactive UI
+
+---
+
+### 🔍 Keyword Highlighting
+
+The system highlights suspicious keywords often found in misleading news articles.
+
+Example keywords:
+
+breaking
+shocking
+exclusive
+conspiracy
+unbelievable
+
+---
+
+### 🌐 News Crawler
+
+The project includes a **news crawler module** that can fetch and process real-time news content.
+
+---
+
+### ⚡ Fast AI Prediction
+
+Average prediction time:
+
+< 200ms
 
 ---
 
 # 🧠 Machine Learning Model
 
-The model used in this project is:
+The system currently uses:
 
 **Random Forest Classifier**
 
-Machine Learning Pipeline:
+Pipeline:
 
 ```
 News Text
-   ↓
+     ↓
 Text Preprocessing
-   ↓
+     ↓
 TF-IDF Vectorization
-   ↓
+     ↓
 Random Forest Model
-   ↓
+     ↓
 Prediction (Fake / Real)
 ```
 
-### Text preprocessing includes
+---
 
-* Lowercasing
+# 🔬 NLP Preprocessing
+
+Text preprocessing includes:
+
+* Lowercasing text
 * Removing punctuation
 * Removing stopwords
-* Lemmatization / normalization
+* Normalization
+* Feature extraction with TF-IDF
 
 ---
 
-# 📊 Model Evaluation
+# 📊 Example Model Performance
 
-Example confusion matrix of the trained model:
+Example confusion matrix:
 
 ```
                  Predicted
@@ -66,86 +120,98 @@ Actual Fake      920      80
 Actual Real       70     930
 ```
 
-Typical accuracy achieved:
+Typical accuracy:
 
-```
-~92% – 95%
-```
-
-You can optionally include a confusion matrix image:
-
-```
-images/confusion_matrix.png
-```
-
-Add it to README like this:
-
-```
-![Confusion Matrix](images/confusion_matrix.png)
-```
+**92% – 95%**
 
 ---
 
 # 🗂 Project Structure
 
 ```
-fake-news-detector
+FAKE NEWS DETECTION
 │
-├── app.py
-├── requirements.txt
-├── README.md
-├── .gitignore
+├── data
+│   └── dataset
+│       ├── Fake.csv
+│       └── True.csv
+│
+├── images
 │
 ├── models
 │   ├── fake_news_model.pkl
 │   └── vectorizer.pkl
 │
 ├── src
-│   ├── preprocess.py
-│   └── predict.py
+│   ├── data
+│   │   ├── prepare_data.py
+│   │   └── preprocess.py
+│   │
+│   ├── models
+│   │   ├── evaluate.py
+│   │   ├── train_bert.py
+│   │   └── train_ml.py
+│   │
+│   ├── pipeline
+│   │   ├── inference.py
+│   │   └── news_crawler.py
+│   │
+│   └── visualization
+│       └── graph_visualizer.py
 │
 ├── static
+│   ├── css
+│   ├── JS
 │   └── style.css
 │
 ├── templates
+│   ├── base.html
+│   ├── dashboard.html
+│   ├── graph.html
 │   └── index.html
 │
-├── notebooks
-│   └── model_training.ipynb
+├── requirements.txt
 │
-└── images
-    └── image.png
+├── .gitignore
+├── app.py
+└── README.md
 ```
 
 ---
 
 # ⚙ Installation
 
-### 1. Clone the repository
+## 1️⃣ Clone the Repository
 
 ```
-git clone https://github.com/yourusername/fake-news-detector.git
+git clone https://github.com/Albert7184/Fake-News-Detection-AI.git
+```
 
-cd fake-news-detector
+Move into the project folder:
+
+```
+cd Fake-News-Detection-AI
 ```
 
 ---
 
-### 2. Create a virtual environment (recommended)
+## 2️⃣ Create Virtual Environment
+
+Recommended:
 
 ```
 python -m venv venv
 ```
 
-Activate it:
+Activate it.
 
-Windows
+Windows:
 
 ```
 venv\Scripts\activate
 ```
 
-Mac / Linux
+Mac / Linux:
 
 ```
 source venv/bin/activate
@@ -153,30 +219,32 @@ source venv/bin/activate
 
 ---
 
-### 3. Install dependencies
+## 3️⃣ Install Dependencies
 
 ```
 pip install -r requirements.txt
 ```
 
-Example dependencies used:
+Main dependencies used:
 
 ```
-flask
+Flask
 scikit-learn
-pandas
 numpy
 beautifulsoup4
 requests
 pdfplumber
 python-docx
+transformers
+torch
+textblob
 ```
 
 ---
 
 # ▶ Running the Application
 
-Run the Flask server:
+Start the Flask server:
 
 ```
 python app.py
@@ -188,51 +256,53 @@ Open your browser and go to:
 http://127.0.0.1:5000
 ```
 
+The **Fake News AI Dashboard** will appear.
+
 ---
 
 # 🧪 How to Use
 
 ### Method 1 — Paste News Text
 
-1. Paste a news article into the text box
-2. Click **Analyze with AI**
-3. View prediction and probability scores
+1. Open the **Analyzer page**
+2. Paste the article text
+3. Click **Analyze**
+4. View prediction results and charts
 
 ---
 
-### Method 2 — Analyze News URL
+### Method 2 — Analyze a URL
 
-1. Paste a news article link into the URL field
-2. Click **Analyze with AI**
-3. The system extracts the article content and analyzes it
+1. Paste a news article URL
+2. Click **Analyze**
+3. The system extracts the article text
+4. AI runs prediction automatically
 
 ---
 
-### Method 3 — Upload News File
+### Method 3 — Upload a File
 
-Supported file formats:
+Supported formats:
 
-```
 TXT
 PDF
 DOCX
-```
 
 Steps:
 
-1. Click **Upload file**
-2. Select a supported file
-3. Click **Analyze with AI**
+1. Upload file
+2. Click **Analyze**
+3. AI extracts text and predicts result
 
-Maximum upload size:
+Maximum file size:
 
-```
 5 MB
-```
 
 ---
 
-# 🎯 Example Output
+# 📊 Example Output
+
+Example prediction:
 
 ```
 Prediction: Fake News 🚨
@@ -241,44 +311,32 @@ Fake Probability: 83%
 Real Probability: 17%
 ```
 
-A chart visualization displays the confidence score.
-
----
-
-# 🔍 Fake Keyword Highlighting
-
-The system highlights certain suspicious keywords that frequently appear in misleading or sensational news articles:
-
-```
-breaking
-shocking
-exclusive
-conspiracy
-unbelievable
-```
-
-These words are visually marked in the analyzed text.
+Charts display prediction confidence visually.
 
 ---
 
 # ⚠ Limitations
 
-* Model accuracy depends on dataset quality
-* Satirical articles may be misclassified
-* Some complex PDF layouts may not extract text perfectly
+Current limitations:
+
+• Model accuracy depends on dataset quality
+• Satirical articles may be misclassified
+• Complex PDFs may not extract text perfectly
+• Traditional ML models may not fully understand context
 
 ---
 
 # 🔮 Future Improvements
 
-Possible future upgrades:
+Planned improvements:
 
-* Use transformer models (BERT / RoBERTa)
+* Transformer-based models (BERT / RoBERTa)
 * Sentence-level fake detection
-* Credibility scoring system
-* News source reliability analysis
-* REST API version of the detector
-* Real-time news verification
+* News credibility scoring
+* Source reliability analysis
+* REST API version
+* Real-time misinformation monitoring
+* Knowledge graph for fake news
 
 ---
 
@@ -290,4 +348,13 @@ MIT License
 
 # 👨‍💻 Author
 
-Cao Minh Phu (Rowan Vale Albert)
+**Cao Minh Phu**
+(Rowan Vale Albert)
+
+AI / Machine Learning Developer
+
+---
+
+# ⭐ Support
+
+If you find this project helpful, please consider **starring the repository on GitHub**.
